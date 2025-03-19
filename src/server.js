@@ -9,8 +9,9 @@ import cors from 'cors'
 // cria o objeto app que tem todas as funções do express
 const app = express()
 
-// middleware para o express entender json
+// middleware para liberar o cors do frontend web
 app.use(cors())
+// middleware para o express entender json
 app.use(express.json()) // lê o json e grava o objeto no req.body
 
 // criando a rota get no endereço / (raiz: http://localhost:3000/) 
