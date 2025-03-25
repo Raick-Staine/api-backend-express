@@ -1,36 +1,18 @@
 import express from 'express'
+import getProductsController from '../controllers/products/getProductsController.js'
+import createProductsController from '../controllers/products/createProductsController.js'
+import deleteProductsController from '../controllers/products/deleteProductsController.js'
+import editNamreProductsController from '../controllers/products/editNameProductsController.js'
+import updateProductsController from '../controllers/products/updateProductsController.js'
+import listProductsController from '../controllers/products/listProductsController.js'
 
-const router = express.Router()
+const products = express.Router()
 
-router.get('/', (req, res) => {
-    return res.json({
-        message: "Resposta do Router GET /product/"
-    })
-})
+products.get('/list', listProductsController)
+products.get('/:id', getProductsController)
+products.post('/', createProductsController)
+products.put('/:id', updateProductsController)
+products.delete('/:id', deleteProductsController)
+products.patch('/nome/:id', editNamreProductsController)
 
-router.post('/', (req, res) => {
-    return res.json({
-        message: "Resposta do Router POST /product/"
-    })
-})
-
-router.put('/', (req, res) => {
-    return res.json({
-        message: "Resposta do Router PUT /product/"
-    })
-})
-
-router.delete('/', (req, res) => {
-    return res.json({
-        message: "Resposta do Router DELETE /product/"
-    })
-})
-
-router.patch('/', (req, res) => {
-    return res.json({
-        message: "Resposta do Router PATCH /product/"
-    })
-})
-
-
-export default router
+export default products
