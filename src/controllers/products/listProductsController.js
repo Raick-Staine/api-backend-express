@@ -1,4 +1,4 @@
-import { list } from "../../models/userModel.js"
+import { list } from "../../models/productsModel.js"
 
 export default async function listProductsController(req, res) {
 
