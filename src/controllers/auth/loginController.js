@@ -1,12 +1,13 @@
 import { userValidator, getByEmail } from "../../models/userModel.js"
 import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
 
-export default async function loginController(req, res, next){
-    try{
+export default async function loginController(req, res, next) {
+    try {
         const user = req.body
-        const { success, error, data } = userValidator(user, {id: true, name: true, avatar: true})
+        const { success, error, data } = userValidator(user, { id: true, name: true, avatar: true })
 
-        if(!success){
+        if (!success) {
             return res.status(400).json({
                 message: "Erro ao validar os dados do login!",
                 errors: error.flatten().fieldErrors
@@ -17,7 +18,7 @@ export default async function loginController(req, res, next){
         const result = await getByEmail(data.email)
 
         // Se o usuário não for encontrado pelo email, retorna um erro
-        if(!result){
+        if (!result) {
             return res.status(400).json({
                 message: "Usuário ou senha inválidos! (Usuario não encontrado)",
             })
@@ -27,29 +28,34 @@ export default async function loginController(req, res, next){
         const passIsValid = bcrypt.compareSync(data.pass, result.pass)
 
         // se a senha não confere, retorna um erro
-        if(!passIsValid){
+        if (!passIsValid) {
             return res.status(400).json({
                 message: "Usuário ou senha inválidos! (Senha não confere)",
             })
         }
 
-        //... continua na próxima aula criar o accesssToken e o refreshToken
-        
-        // se a criação do usuário for bem sucedida, retorna o usuário criado
-        return res.status(201).json({
-            message: "Usuário criado com sucesso!",
-            user: result
-        })
-    } catch(error){
-        if(error?.code === "P2002" && error?.meta?.target === "user_email_key"){
-            return res.status(400).json({
-                message: "Erro ao criar usuário!",
-                errors: {
-                    email: ["Email já cadastrado!"]
-                }
-            })
+        // dados para guardar no token (payload)
+        const payload = {
+            id: result.id,
         }
 
+        const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' })
+        const refreshToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '3d' })
+
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'None', secure: true, maxAge: 3 * 24 * 60 * 60 * 1000 }) // 3 dias
+
+        return res.status(200).json({
+            message: "Login realizado com sucesso!",
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+            user: {
+                id: result.id,
+                name: result.name,
+                email: result.email,
+                avatar: result.avatar
+            }
+        })
+    } catch (error) {
         next(error)
     }
 }
